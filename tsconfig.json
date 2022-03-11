@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {                 
+      "target": "es2021",                               
+      "module": "esnext",                           
+      "outDir": "./out",                             
+      "rootDir": "./src",
+      "strict": true,
+      "moduleResolution": "node", 
+      "allowSyntheticDefaultImports": true
+    }
+}
