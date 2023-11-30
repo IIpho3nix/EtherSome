@@ -1,5 +1,6 @@
-# REPOSITORY NO LONGER MAINTANED
-Use https://github.com/IIpho3nix/EtherSome-Gui instead
+# Project Status: Abandoned
+
+Attention: This project is no longer actively maintained. As a result, it is non-functional and not suitable for use
 
 ## EtherSome
 
