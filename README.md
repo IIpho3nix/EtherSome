@@ -1,6 +1,6 @@
-# Project Status: Abandoned
+# ATTENTION: Security cant be guaranteed
 
-Attention: This project is no longer actively maintained. As a result, it is non-functional and not suitable for use
+this project is just a hobby project for learning and fun. thus it probably does not comply with any security standards
 
 ## EtherSome
 
