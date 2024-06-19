@@ -1,4 +1,4 @@
-import ethers from "ethers";
+import { ethers } from "ethers";
 
 let exports: any = {};
 
@@ -13,8 +13,8 @@ const createWallet = async (
     mnemoniclength = 12;
   }
   const bytescount = { 12: 16, 15: 20, 18: 24, 21: 28, 24: 32 };
-  const mnemonic = ethers.utils.entropyToMnemonic(
-    ethers.utils.randomBytes(bytescount[mnemoniclength])
+  const mnemonic = ethers.Mnemonic.entropyToPhrase(
+    ethers.randomBytes(bytescount[mnemoniclength])
   );
 
   return createWalletFromMnemonic(mnemonic, providerkey);
@@ -26,8 +26,9 @@ const createWalletFromMnemonic = async (
   mnemonic: string,
   providerkey: string
 ) => {
-  const wallet = ethers.Wallet.fromMnemonic(mnemonic);
-  const provider = new ethers.providers.JsonRpcProvider(providerkey);
+  const wallet = ethers.Wallet.fromPhrase(mnemonic);
+  const provider = new ethers.JsonRpcProvider(providerkey);
+  
   return wallet.connect(provider);
 };
 
@@ -38,7 +39,7 @@ const createWalletFromPrivateKey = async (
   providerkey: string
 ) => {
   const wallet = new ethers.Wallet(privateKey);
-  const provider = new ethers.providers.JsonRpcProvider(providerkey);
+  const provider = new ethers.JsonRpcProvider(providerkey);
   return wallet.connect(provider);
 };
 
@@ -47,7 +48,7 @@ exports.createWalletFromPrivateKey = createWalletFromPrivateKey;
 const transferEther = async (wallet: any, to: string, amount: string) => {
   const tx = {
     to: to,
-    value: ethers.utils.parseEther(amount),
+    value: ethers.parseEther(amount),
   };
   const result = await wallet.sendTransaction(tx);
   return result;
@@ -56,8 +57,8 @@ const transferEther = async (wallet: any, to: string, amount: string) => {
 exports.transferEther = transferEther;
 
 const getEtherBalance = async (wallet: any) => {
-  const balance = await wallet.getBalance();
-  return parseFloat(ethers.utils.formatEther(balance));
+  const balance = await wallet.provider.getBalance(wallet.address);
+  return parseFloat(ethers.formatEther(balance));
 };
 
 exports.getEtherBalance = getEtherBalance;
@@ -65,28 +66,33 @@ exports.getEtherBalance = getEtherBalance;
 const estimateGas = async (wallet: any, to: string, amount: string) => {
   const tx = {
     to: to,
-    value: ethers.utils.parseEther(amount),
-  };
-  const gasPrice = await wallet.provider.getGasPrice();
-  const gas = ethers.utils.formatEther(
-    gasPrice.mul(await wallet.estimateGas(tx))
-  );
-  return gas;
+    value: ethers.parseEther(amount),
+  };  
+  
+  return await wallet.estimateGas(tx);
 };
 
 exports.estimateGas = estimateGas;
 
 const symbolToName = async (symbol: string) => {
-  const response = await ethers.utils.fetchJson(
-    "https://api.coingecko.com/api/v3/coins/list"
-  );
-  const json = await response;
-  for (let i = 0; i < json.length; i++) {
-    if (json[i].symbol == symbol) {
-      return json[i].name;
+    if (symbol === "eth" || symbol === "ETH") {
+      return "Ethereum";
     }
-  }
-  return null;
+
+    const response = await fetch(
+      "https://api.coingecko.com/api/v3/coins/list"
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch coin list");
+    }
+    
+    const json = await response.json();
+    for (let i = 0; i < json.length; i++) {
+      if (json[i].symbol === symbol) {
+        return json[i].name;
+      }
+    }
+    return null;
 };
 
 exports.symbolToName = symbolToName;
@@ -96,12 +102,14 @@ const getPrice = async (amount: number, symbol: string) => {
   if (name == null) {
     return null;
   } else {
-    const response = await ethers.utils.fetchJson(
-      "https://api.coingecko.com/api/v3/simple/price?ids=" +
-        name +
-        "&vs_currencies=usd"
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${name}&vs_currencies=usd`
     );
-    const json = await response;
+    if (!response.ok) {
+      throw new Error(`Failed to fetch price for ${name}`);
+    }
+    
+    const json = await response.json();
     return json[name.toLowerCase()].usd * amount;
   }
 };
@@ -119,7 +127,7 @@ const transferToken = async (
     token.tokenABI,
     wallet
   );
-  const result = await contract.transfer(to, ethers.utils.parseUnits(amount));
+  const result = await contract.transfer(to, ethers.parseUnits(amount));
   return result;
 };
 
@@ -132,7 +140,7 @@ const getTokenBalance = async (wallet: any, token: any) => {
     wallet
   );
   const balance = await contract.balanceOf(wallet.address);
-  return parseFloat(ethers.utils.formatEther(balance));
+  return parseFloat(ethers.formatEther(balance));
 };
 
 exports.getTokenBalance = getTokenBalance;
@@ -149,9 +157,9 @@ const estimateTokenGas = async (
     wallet
   );
   const gasPrice = await wallet.provider.getGasPrice();
-  const gas = ethers.utils.formatEther(
+  const gas = ethers.formatEther(
     gasPrice.mul(
-      await contract.estimateGas.transfer(to, ethers.utils.parseUnits(amount))
+      await contract.estimateGas(to, ethers.parseUnits(amount))
     )
   );
   return gas;
@@ -172,14 +180,14 @@ const getTokenSymbol = async (token: any, wallet: any) => {
 exports.getTokenSymbol = getTokenSymbol;
 
 const getProvider = (network: string) => {
-  const provider = new ethers.providers.InfuraProvider("mainnet");
-  return "https://" + network + ".infura.io/v3/" + provider.apiKey;
+  const provider = new ethers.InfuraProvider("mainnet");
+  return "https://" + network + ".infura.io/v3/" + provider.projectId;
 };
 
 exports.getProvider = getProvider;
 
 const getChainId = async (providerkey: string) => {
-  const provider = new ethers.providers.JsonRpcProvider(providerkey);
+  const provider = new ethers.JsonRpcProvider(providerkey);
   return (await provider.getNetwork()).chainId;
 };
 

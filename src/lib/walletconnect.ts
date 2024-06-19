@@ -4,7 +4,7 @@ import sigutil, { MessageTypes, TypedMessage } from "@metamask/eth-sig-util";
 
 import chalk from "chalk";
 
-import ethers from "ethers";
+import { ethers } from "ethers";
 
 import question from "./question.js";
 
@@ -86,7 +86,7 @@ const handleApprove = async (payload: any, connector: any, wallet: any) => {
               connector.approveRequest({
                 id: payload.id,
                 result: await wallet.signMessage(
-                  ethers.utils.arrayify(payload.params[0])
+                  ethers.getBytes(payload.params[0])
                 ),
               });
               showBanner();
@@ -106,7 +106,7 @@ const handleApprove = async (payload: any, connector: any, wallet: any) => {
               connector.approveRequest({
                 id: payload.id,
                 result: await wallet.signMessage(
-                  ethers.utils.arrayify(payload.params[1])
+                  ethers.getBytes(payload.params[1])
                 ),
               });
               showBanner();
@@ -127,7 +127,7 @@ const handleApprove = async (payload: any, connector: any, wallet: any) => {
                 payload.params[1]
               );
               const privateKey: Buffer = Buffer.from(
-                ethers.utils.arrayify(wallet.privateKey)
+                ethers.getBytes(wallet.privateKey)
               );
               const version = sigutil.SignTypedDataVersion.V4;
               const signature = sigutil.signTypedData({

@@ -92,10 +92,11 @@ const main = async () => {
     if (answer6) {
       const providerslisst = [
         "mainnet",
-        "ropsten",
-        "rinkeby",
-        "goerli",
-        "kovan",
+        "arbitrum",
+        "polygon",
+        "sepolia",
+        "holesky",
+        "amoy",
         "local:8545 (Ganache)",
         "local:8545 (Hardhat)",
       ];
@@ -110,7 +111,19 @@ const main = async () => {
         answer7 === "local:8545 (Hardhat)"
       ) {
         provider = "http://localhost:8545";
-      } else {
+      } else if (answer7 === "arbitrum") {
+        provider = "https://arb1.arbitrum.io/rpc"
+        symbol = "ARB"
+      } else if (answer7 === "polygon") {
+        provider = "https://polygon-rpc.com"
+        symbol = "MATIC"
+      } else if (answer7 === "holesky") {
+        provider = "https://holesky.drpc.org"
+      } else if (answer7 === "amoy") {
+        provider = "https://polygon-amoy.drpc.org"
+        symbol = "MATIC"
+      }
+      else {
         provider = wallet.getProvider(answer7);
       }
     } else {
@@ -412,9 +425,7 @@ const main = async () => {
                       await question.YorN(
                         "This Will Cost Around " +
                           gascalc +
-                          " " +
-                          symbol +
-                          " In gas Are You Sure"
+                          " In Gas Are You Sure?"
                       )
                     ).answer;
                     showBanner();
@@ -530,10 +541,8 @@ const main = async () => {
                       const confirmone = (
                         await question.YorN(
                           "This Will Cost Around " +
-                            gascalc +
-                            " " +
-                            symbol +
-                            " In gas Are You Sure"
+                          gascalc +
+                          " In Gas Are You Sure?"
                         )
                       ).answer;
                       showBanner();
@@ -716,9 +725,7 @@ const main = async () => {
                       chalk.green(
                         "This Will Cost Around " +
                           gascalc2 +
-                          " " +
-                          symbol +
-                          " In gas"
+                          " In Gas"
                       )
                     );
                   } catch (e) {
@@ -777,9 +784,7 @@ const main = async () => {
                       chalk.green(
                         "This Will Cost Around " +
                           gascalc2 +
-                          " " +
-                          symbol +
-                          " In gas"
+                          " In Gas Are You Sure?"
                       )
                     );
                   } catch (e) {
