@@ -5,7 +5,6 @@ import fs from "fs";
 import question from "./lib/question.js";
 import wallet from "./lib/wallet.js";
 import config from "./lib/config.js";
-import walletconnect from "./lib/walletconnect.js";
 
 let userWallet: any = null;
 
@@ -887,29 +886,6 @@ const main = async () => {
           showBanner();
           console.log(chalk.green("Wallet Saved"));
           break;
-        case "Connect With WalletConnect":
-          const url = (
-            await question.askQuestion(
-              "Please enter the connection url",
-              ".",
-              "Please enter a valid url",
-              false
-            )
-          ).answer;
-          showBanner();
-          loop = false;
-          walletconnect.startServer(
-            url,
-            userWallet,
-            chainId,
-            (message: string) => {
-              showBanner();
-              console.log(chalk.green(message));
-              askAction();
-              loop = true;
-            }
-          );
-          break;
       }
 
       if (loop) {
@@ -932,7 +908,6 @@ const main = async () => {
             "Remove Token",
             "List Token",
             "Save My Wallet",
-            "Connect With WalletConnect",
             "Quit",
           ])
         ).answer
