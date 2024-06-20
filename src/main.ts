@@ -424,7 +424,9 @@ const main = async () => {
                       await question.YorN(
                         "This Will Cost Around " +
                           gascalc +
-                          " In Gas Are You Sure?"
+                          " " +
+                          symbol +
+                          " In Gas, Are You Sure?"
                       )
                     ).answer;
                     showBanner();
@@ -541,7 +543,9 @@ const main = async () => {
                         await question.YorN(
                           "This Will Cost Around " +
                           gascalc +
-                          " In Gas Are You Sure?"
+                          " " +
+                          symbol +
+                          " In Gas, Are You Sure?"
                         )
                       ).answer;
                       showBanner();
@@ -724,6 +728,8 @@ const main = async () => {
                       chalk.green(
                         "This Will Cost Around " +
                           gascalc2 +
+                          " " +
+                          symbol +
                           " In Gas"
                       )
                     );
@@ -783,7 +789,9 @@ const main = async () => {
                       chalk.green(
                         "This Will Cost Around " +
                           gascalc2 +
-                          " In Gas Are You Sure?"
+                          " " +
+                          symbol +
+                          " In Gas"
                       )
                     );
                   } catch (e) {

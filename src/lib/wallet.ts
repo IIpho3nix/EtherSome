@@ -68,8 +68,13 @@ const estimateGas = async (wallet: any, to: string, amount: string) => {
     to: to,
     value: ethers.parseEther(amount),
   };  
+
+  const feeData = await wallet.provider.getFeeData();
+  const gasPrice = feeData.gasPrice;
+  const gasEstimate = await wallet.estimateGas(tx);
   
-  return await wallet.estimateGas(tx);
+  const gas = ethers.formatEther(gasEstimate * gasPrice);
+  return gas;
 };
 
 exports.estimateGas = estimateGas;
@@ -156,12 +161,11 @@ const estimateTokenGas = async (
     token.tokenABI,
     wallet
   );
-  const gasPrice = await wallet.provider.getGasPrice();
-  const gas = ethers.formatEther(
-    gasPrice.mul(
-      await contract.estimateGas(to, ethers.parseUnits(amount))
-    )
-  );
+  const feeData = await wallet.provider.getFeeData();
+  const gasPrice = feeData.gasPrice;
+  const gasEstimate = await contract.estimateGas(to, ethers.parseUnits(amount));
+  
+  const gas = ethers.formatEther(gasEstimate * gasPrice);
   return gas;
 };
 
