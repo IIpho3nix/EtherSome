@@ -96,8 +96,7 @@ const main = async () => {
         "sepolia",
         "holesky",
         "amoy",
-        "local:8545 (Ganache)",
-        "local:8545 (Hardhat)",
+        "local:8545"
       ];
       const chainIds = [1, 3, 4, 5, 42, 1337, 31337];
       const answer7 = (
@@ -106,8 +105,7 @@ const main = async () => {
       showBanner();
       chainId = chainIds[providerslisst.indexOf(answer7)];
       if (
-        answer7 === "local:8545 (Ganache)" ||
-        answer7 === "local:8545 (Hardhat)"
+        answer7 === "local:8545"
       ) {
         provider = "http://localhost:8545";
       } else if (answer7 === "arbitrum") {
