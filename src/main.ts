@@ -98,7 +98,7 @@ const main = async () => {
         "amoy",
         "local:8545"
       ];
-      const chainIds = [1, 3, 4, 5, 42, 1337, 31337];
+      const chainIds = [1, 42161, 137, 11155111, 17000, 80002, 31337];
       const answer7 = (
         await question.pickList("Please select a provider", providerslisst)
       ).answer;
@@ -122,6 +122,11 @@ const main = async () => {
       }
       else {
         provider = wallet.getProvider(answer7);
+      }
+      let chainCheck = await wallet.getChainId(provider);
+      if (parseInt(chainCheck) !== chainId) {
+        console.log(chalk.red("ChainId Mismatch (something went very wrong)") + " " + chainCheck + " " + chainId);
+        process.exit(1);
       }
     } else {
       provider = (
