@@ -5,7 +5,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "tsc && node out/main.js"
+    "build": "tsc && node out/main.js",
+    "start": "node out/main.js"
   },
   "author": "IIpho3nix",
   "license": "GPL-3.0",
