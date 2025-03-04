@@ -22,12 +22,21 @@ const saveWallet = (
   }
 
   let keyandiv = cryptoutils.generateKeyAndIvFromSeed(password);
-  const encryptedWallet = cryptoutils.encrypt(
-    wallet.privateKey + "|" + wallet.mnemonic.phrase,
-    keyandiv.split("|")[0],
-    cryptoutils.base64ToBuffer(keyandiv.split("|")[1])
-  );
-  fs.writeFileSync(path, encryptedWallet + "|" + tokenString);
+  if (wallet.mnemonic && wallet.mnemonic.phrase) {
+    const encryptedWallet = cryptoutils.encrypt(
+      wallet.privateKey + "|" + wallet.mnemonic.phrase,
+      keyandiv.split("|")[0],
+      cryptoutils.base64ToBuffer(keyandiv.split("|")[1])
+    );
+    fs.writeFileSync(path, encryptedWallet + "|" + tokenString);
+  } else {
+    const encryptedWallet = cryptoutils.encrypt(
+      wallet.privateKey + "|NULL",
+      keyandiv.split("|")[0],
+      cryptoutils.base64ToBuffer(keyandiv.split("|")[1])
+    );
+    fs.writeFileSync(path, encryptedWallet + "|" + tokenString);
+  }
 };
 
 exports.saveWallet = saveWallet;
@@ -65,7 +74,7 @@ const loadWallet = async (
     };
   };
 
-  if (walletParts[1] == null) {
+  if (walletParts[1] == null || walletParts[1] == "NULL") {
     return returnwall(
       await wallet.createWalletFromPrivateKey(walletParts[0], providerkey),
       tokens
