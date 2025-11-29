@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
 
 let exports: any = {};
+let cachedCoinlist: any = null;
+let cachedTokens: any = {};
 
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -79,43 +81,68 @@ const estimateGas = async (wallet: any, to: string, amount: string) => {
 
 exports.estimateGas = estimateGas;
 
-const symbolToName = async (symbol: string) => {
+const symbolToId = async (symbol: string) => {
     if (symbol === "eth" || symbol === "ETH") {
       return "Ethereum";
     }
 
-    const response = await fetch(
-      "https://api.coingecko.com/api/v3/coins/list"
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch coin list");
+    if (cachedCoinlist == null) {
+      const response = await fetch(
+        "https://api.coingecko.com/api/v3/coins/list"
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch coin list");
+      }
+      
+      const fetchedCoinlist = await response.json();
+      cachedCoinlist = fetchedCoinlist;
     }
-    
-    const json = await response.json();
+
+    const json = cachedCoinlist;
     for (let i = 0; i < json.length; i++) {
       if (json[i].symbol === symbol) {
-        return json[i].name;
+        return json[i].id;
       }
     }
     return null;
 };
 
-exports.symbolToName = symbolToName;
+exports.symbolToId = symbolToId;
 
 const getPrice = async (amount: number, symbol: string) => {
-  const name = await symbolToName(symbol.toLowerCase());
-  if (name == null) {
+  const id = await symbolToId(symbol.toLowerCase());
+  if (id == null) {
     return null;
   } else {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${name}&vs_currencies=usd`
-    );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch price for ${name}`);
+    if (cachedTokens[id] == null) {
+      const response = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch price for ${id}`);
+      }
+      
+      const json = await response.json();
+      cachedTokens[id] = {
+        usd: json[id.toLowerCase()].usd,
+        cacheTime: Date.now(),
+      };
+    }else if (Date.now() - cachedTokens[id].cacheTime > 10000) {
+      const response = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch price for ${id}`);
+      }
+      
+      const json = await response.json();
+      cachedTokens[id] = {
+        usd: json[id.toLowerCase()].usd,
+        cacheTime: Date.now(),
+      };
     }
-    
-    const json = await response.json();
-    return json[name.toLowerCase()].usd * amount;
+
+    return cachedTokens[id].usd * amount;
   }
 };
 
@@ -132,7 +159,8 @@ const transferToken = async (
     token.tokenABI,
     wallet
   );
-  const result = await contract.transfer(to, ethers.parseUnits(amount));
+  const decimals = await contract.decimals();
+  const result = await contract.transfer(to, ethers.parseUnits(amount, decimals));
   return result;
 };
 
@@ -145,7 +173,8 @@ const getTokenBalance = async (wallet: any, token: any) => {
     wallet
   );
   const balance = await contract.balanceOf(wallet.address);
-  return parseFloat(ethers.formatEther(balance));
+  const decimals = await contract.decimals();
+  return parseFloat(ethers.formatUnits(balance, decimals));
 };
 
 exports.getTokenBalance = getTokenBalance;
@@ -163,7 +192,8 @@ const estimateTokenGas = async (
   );
   const feeData = await wallet.provider.getFeeData();
   const gasPrice = feeData.gasPrice;
-  const gasEstimate = await contract.estimateGas(to, ethers.parseUnits(amount));
+  const decimals = await contract.decimals();
+  const gasEstimate = await contract.transfer.estimateGas(to, ethers.parseUnits(amount, decimals));
   
   const gas = ethers.formatEther(gasEstimate * gasPrice);
   return gas;
